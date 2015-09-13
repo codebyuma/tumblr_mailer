@@ -3,13 +3,13 @@ var ejs = require('ejs');
 var tumblr = require('tumblr.js');
 var querystring = require ("querystring");
 var mandrill = require('mandrill-api/mandrill');
-var mandrill_client = new mandrill.Mandrill('gYh5n8bpNBBK6zMIco5tYA'); // mandrill APIkey
+var mandrill_client = new mandrill.Mandrill('***'); // mandrill APIkey
 /* tumblr API keys */
 var client = tumblr.createClient({
-  consumer_key: 'YIBCEyXwZfh0nXKJMXmaCXEPSIF7oOrlvmVx6HlJyEDT38KIgx',
-  consumer_secret: '43YvlJcKbR92ee9tOYShZiGe0fFB2OpoupD4sJQlwpyoZvD6Vj',
-  token: 'PXMLpVtTKwgSYVhEn1LlUV4s2ElmOn18yflT301PuHQ2Hr1wZU',
-  token_secret: 'MJxnrPecpGH468S4AgtRi4gWRYXwybC4lK9mlK9Cfns9mCO7Ss'
+  consumer_key: '***',
+  consumer_secret: '***',
+  token: '***',
+  token_secret: '***'
 });
 
 var emailAddress = "emailAddress";
