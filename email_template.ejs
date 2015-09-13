@@ -10,8 +10,13 @@
 
   </p>
   <p>
-    I've been blogging about my experiences at Fullstack on my blog. 
-    <a href="http://umacodes.tumblr.com/">My Blog</a>
+    I've been blogging about my experiences at Fullstack on <a href="http://umacodes.tumblr.com/">My Blog</a>
+    Look at my most recent posts:
+    <ul>
+      <% for(var i=0; i<latestPosts.length; i++) {%>
+         <li><a href=<%= latestPosts[i].href %>> <%= latestPosts[i].title %></a>  </li>
+      <% } %>
+    </ul>
   </p>
 
   <p>

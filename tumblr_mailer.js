@@ -8,18 +8,8 @@ var client = tumblr.createClient({
   token: 'PXMLpVtTKwgSYVhEn1LlUV4s2ElmOn18yflT301PuHQ2Hr1wZU',
   token_secret: 'MJxnrPecpGH468S4AgtRi4gWRYXwybC4lK9mlK9Cfns9mCO7Ss'
 });
-
-client.posts('umacodes.tumblr.com', function(error, blog){
-  var posts = blog.posts;
-  var today = new Date();
-  //console.log(posts.length);
-  for (var i=0; i<posts.length; i++){
-  	var postDate = new Date(posts[i].date);
-  
-  	if (today.getTime()-postDate.getTime() <= 604800000)
-  		console.log(blog.posts[i].title + "\n" + blog.posts[i].post_url);
-   }
-})
+var mandrill = require('mandrill-api/mandrill');
+var mandrill_client = new mandrill.Mandrill('gYh5n8bpNBBK6zMIco5tYA');
 
 var csvFile = fs.readFileSync("friend_list.csv","utf8");
 //fs.readFileSync('email_template', 'utf-8');
@@ -38,7 +28,26 @@ var lastName = "lastName";
 
 var email = fs.readFileSync('email_template.ejs', 'utf-8'); // email_template.html?
 
-//UNCOMMENT - customizeEmail(csv_data, email); 
+
+var latestPosts = [];
+client.posts('umacodes.tumblr.com', function(error, blog){
+  var posts = blog.posts;
+  var today = new Date();
+  
+  //console.log(posts.length);
+  for (var i=0; i<posts.length; i++){
+  	var postDate = new Date(posts[i].date);
+  
+  	if (today.getTime()-postDate.getTime() <= 604800000){
+  		//console.log(blog.posts[i].title + "\n" + blog.posts[i].post_url);
+   		latestPosts.push({title: blog.posts[i].title, href: blog.posts[i].post_url});
+   	}
+   }
+   //console.log(latestPosts);
+   console.log(csv_data);
+   customizeEmail(csv_data, email); 
+})
+
 
 
 
@@ -89,6 +98,7 @@ function csvParse (inputFile){
 	  };*/
 	  var item = {};
 	  var data = content[i].split(",");
+
 	  if (data!=""){
 		  //results[header[i-1]]=(data[i-1]);
 		  //console.log("test: " + results);
@@ -120,14 +130,52 @@ function customizeEmail (recipients, template){
 		console.log(outputEmail);
 	}*/
 
+	console.log(recipients.length);
 	for (var i=0; i<recipients.length; i++){
 			// render function takes a template and an object filled with properties that are used in the template. 
 			//After an EJS is processed, it will return pure HTML, a string, that is ready to be sent in an email.
 			var customizedTemplate = ejs.render(email, 
-			                { firstName: csv_data[i][firstName],  
-			                  numMonthsSinceContact: csv_data[i][numMonthsSinceContact]
+			                { firstName: recipients[i][firstName],  
+			                  numMonthsSinceContact: recipients[i][numMonthsSinceContact],
+			                  latestPosts: latestPosts
 			                });
-			console.log(customizedTemplate);
+
+			//console.log(customizedTemplate);
+			sendEmail(recipients[i][firstName], recipients[i][emailAddress], "Uma", "umachandran6@gmail.com", "Hello!", customizedTemplate);
 		}
 
 }
+
+
+
+function sendEmail(to_name, to_email, from_name, from_email, subject, message_html){
+    var message = {
+        "html": message_html,
+        "subject": subject,
+        "from_email": from_email,
+        "from_name": from_name,
+        "to": [{
+                "email": to_email,
+                "name": to_name
+            }],
+        "important": false,
+        "track_opens": true,    
+        "auto_html": false,
+        "preserve_recipients": true,
+        "merge": false,
+        "tags": [
+            "Fullstack_Tumblrmailer_Workshop"
+        ]    
+    };
+    var async = false;
+    var ip_pool = "Main Pool";
+    mandrill_client.messages.send({"message": message, "async": async, "ip_pool": ip_pool}, function(result) {
+         console.log(message);
+         console.log(result);   
+    }, function(e) {
+        // Mandrill returns the error as an object with name and message keys
+        console.log('A mandrill error occurred: ' + e.name + ' - ' + e.message);
+        // A mandrill error occurred: Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+    });
+ }
+
