@@ -1,5 +1,25 @@
 var fs = require('fs');
+var ejs = require('ejs');
+var tumblr = require('tumblr.js');
 var querystring = require ("querystring");
+var client = tumblr.createClient({
+  consumer_key: 'YIBCEyXwZfh0nXKJMXmaCXEPSIF7oOrlvmVx6HlJyEDT38KIgx',
+  consumer_secret: '43YvlJcKbR92ee9tOYShZiGe0fFB2OpoupD4sJQlwpyoZvD6Vj',
+  token: 'PXMLpVtTKwgSYVhEn1LlUV4s2ElmOn18yflT301PuHQ2Hr1wZU',
+  token_secret: 'MJxnrPecpGH468S4AgtRi4gWRYXwybC4lK9mlK9Cfns9mCO7Ss'
+});
+
+client.posts('umacodes.tumblr.com', function(error, blog){
+  var posts = blog.posts;
+  var today = new Date();
+  //console.log(posts.length);
+  for (var i=0; i<posts.length; i++){
+  	var postDate = new Date(posts[i].date);
+  
+  	if (today.getTime()-postDate.getTime() <= 604800000)
+  		console.log(blog.posts[i].title + "\n" + blog.posts[i].post_url);
+   }
+})
 
 var csvFile = fs.readFileSync("friend_list.csv","utf8");
 //fs.readFileSync('email_template', 'utf-8');
@@ -13,16 +33,14 @@ var emailAddress = "emailAddress";
 var numMonthsSinceContact = "numMonthsSinceContact";
 var firstName = "firstName";
 var lastName = "lastName";
-console.log(csv_data[0]["firstName"] + " " + csv_data[0]["lastName"] +  "'s address: " + csv_data[0][emailAddress]);
-console.log(csv_data[1]["firstName"] + " " + csv_data[1]["lastName"] + "'s address: " + csv_data[1][emailAddress]);
+//console.log(csv_data[0]["firstName"] + " " + csv_data[0]["lastName"] +  "'s address: " + csv_data[0][emailAddress]);
+//console.log(csv_data[1]["firstName"] + " " + csv_data[1]["lastName"] + "'s address: " + csv_data[1][emailAddress]);
 
-var email = fs.readFileSync('email_template.html', 'utf-8');
+var email = fs.readFileSync('email_template.ejs', 'utf-8'); // email_template.html?
 
-customizeEmail(csv_data, email);
+//UNCOMMENT - customizeEmail(csv_data, email); 
 
 
-//var csv_data = csvParse(csvFile)
-//console.log(csv_data);
 
 // csvParse function, takes in csvFile
 /*Create the function csvParse that takes a CSV file(our csvFile variable) 
@@ -93,13 +111,23 @@ function csvParse (inputFile){
 
 function customizeEmail (recipients, template){
 	//console.log(template.indexOf("FIRST_NAME"));
-	for (var i=0; i<recipients.length; i++){ // use foreach instead 
+	/*for (var i=0; i<recipients.length; i++){ // use foreach instead 
 		var outputEmail = template;
 		//console.log(recipients[i]["firstName"]);
 		console.log(recipients[i]["firstName"]);
 		outputEmail = outputEmail.replace("FIRST_NAME", recipients[i]["firstName"]); // use REGEX
 		outputEmail = outputEmail.replace("NUM_MONTHS_SINCE_CONTACT", recipients[i]["numMonthsSinceContact"]);
 		console.log(outputEmail);
-	}
+	}*/
+
+	for (var i=0; i<recipients.length; i++){
+			// render function takes a template and an object filled with properties that are used in the template. 
+			//After an EJS is processed, it will return pure HTML, a string, that is ready to be sent in an email.
+			var customizedTemplate = ejs.render(email, 
+			                { firstName: csv_data[i][firstName],  
+			                  numMonthsSinceContact: csv_data[i][numMonthsSinceContact]
+			                });
+			console.log(customizedTemplate);
+		}
 
 }
